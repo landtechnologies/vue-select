@@ -896,4 +896,210 @@ describe('Select.vue', () => {
 			})
 		})
 	})
+
+	describe('When Groups Are Enabled', () => {
+		it('should display group names as headings', () => {
+			var opt1 = {
+				label: 'one',
+				group: 'group1'
+			};
+			var opt2 = {
+				label: 'two',
+				group: 'group2'
+			};
+			const vm = new Vue({
+				template: '<div><v-select v-ref:select :options="options" groups taggable></v-select></div>',
+				components: {vSelect},
+				data: {
+					options: [opt1, opt2]
+				}
+			}).$mount()
+
+			expect(vm.$refs.select.filteredOptionsWithGroupNames).toEqual([{
+				isGroupTitle: true,
+				option: 'group1'
+			}, {
+				option: opt1,
+				optionIndex: 0
+			}, {
+				isGroupTitle: true,
+				option: 'group2'
+			}, {
+				option: opt2,
+				optionIndex: 1
+			}])
+		})
+
+		it('should order group items by order in options list', () => {
+			var opt1 = {
+				label: 'one',
+				group: 'group1'
+			};
+			var opt2 = {
+				label: 'two',
+				group: 'group2'
+			};
+			var opt3 = {
+				label: 'three',
+				group: 'group2'
+			};
+			var opt4 = {
+				label: 'four',
+				group: 'group1'
+			};
+			var opt5 = {
+				label: 'five',
+				group: 'group2'
+			};
+			const vm = new Vue({
+				template: '<div><v-select v-ref:select :options="options" groups taggable></v-select></div>',
+				components: {vSelect},
+				data: {
+					options: [opt1, opt2, opt3, opt4, opt5]
+				}
+			}).$mount()
+
+			expect(vm.$refs.select.filteredOptionsWithGroupNames).toEqual([{
+				isGroupTitle: true,
+				option: 'group1'
+			}, {
+				option: opt1,
+				optionIndex: 0
+			}, {
+				option: opt4,
+				optionIndex: 1
+			}, {
+				isGroupTitle: true,
+				option: 'group2'
+			}, {
+				option: opt2,
+				optionIndex: 2
+			}, {
+				option: opt3,
+				optionIndex: 3
+			}, {
+				option: opt5,
+				optionIndex: 4
+			}])
+		})
+
+		it('should not display items without group names', () => {
+			var opt1 = {
+				label: 'one'
+			};
+			var opt2 = {
+				label: 'two',
+				group: 'group1'
+			};
+			var opt3 = {
+				label: 'three'
+			};
+			const vm = new Vue({
+				template: '<div><v-select v-ref:select :options="options" groups taggable></v-select></div>',
+				components: {vSelect},
+				data: {
+					options: [opt1, opt2, opt3]
+				}
+			}).$mount()
+
+			expect(vm.$refs.select.filteredOptionsWithGroupNames).toEqual([{
+				isGroupTitle: true,
+				option: 'group1'
+			}, {
+				option: opt2,
+				optionIndex: 0
+			}])
+		})
+
+		it('should display groups with items matching the filter', (done) => {
+			var opt1 = {
+				label: 'one',
+				group: 'group1'
+			};
+			var opt2 = {
+				label: 'two1',
+				group: 'group2'
+			};
+			var opt3 = {
+				label: 'two2'
+			};
+			var opt4 = {
+				label: 'three'
+			};
+			const vm = new Vue({
+				template: '<div><v-select v-ref:select :options="options" groups></v-select></div>',
+				components: {vSelect},
+				data: {
+					options: [opt1, opt2, opt3]
+				}
+			}).$mount()
+
+			vm.$children[0].search = 'two'
+
+			Vue.nextTick(() => {
+				expect(vm.$refs.select.filteredOptionsWithGroupNames).toEqual([{
+					isGroupTitle: true,
+					option: 'group2'
+				}, {
+					option: opt2,
+					optionIndex: 0
+				}])
+				done()
+			})
+		})
+
+		it('should not select group headings', () => {
+			var opt1 = {
+				label: 'one',
+				group: 'group1'
+			};
+			var opt2 = {
+				label: 'two1',
+				group: 'group2'
+			};
+			var opt3 = {
+				label: 'two2'
+			};
+			const vm = new Vue({
+				template: '<div><v-select v-ref:select :options="options" groups></v-select></div>',
+				components: {vSelect},
+				data: {
+					options: [opt1, opt2, opt3]
+				}
+			}).$mount()
+
+			vm.$children[0].select('group1')
+
+			expect(vm.$children[0].value).toBeFalsy()
+		})
+
+		it('should select the correct item when using typeahead pointer', () => {
+			var opt1 = {
+				label: 'one',
+				group: 'group1'
+			};
+			var opt2 = {
+				label: 'two',
+				group: 'group2'
+			};
+			var opt3 = {
+				label: 'three',
+				group: 'group3'
+			};
+			const vm = new Vue({
+				template: '<div><v-select v-ref:select :options="options" groups></v-select></div>',
+				components: {vSelect},
+				data: {
+					options: [opt1, opt2, opt3]
+				}
+			}).$mount()
+
+			vm.$children[0].typeAheadPointer = 1
+
+			trigger(vm.$children[0].$els.search, 'keyup', (e) => e.keyCode = 13)
+			expect(vm.$children[0].value).toEqual(opt2)
+		})
+	})
+
+
 })

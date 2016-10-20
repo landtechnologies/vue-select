@@ -207,11 +207,16 @@
 		</div>
 
 		<ul v-el:dropdown-menu v-show="open" :transition="transition" class="dropdown-menu" :style="{ 'max-height': maxHeight }">
-			<li v-for="option in filteredOptions" track-by="$index" :class="{ active: isOptionSelected(option), highlight: $index === typeAheadPointer }" @mouseover="typeAheadPointer = $index">
-				<a @mousedown.prevent="select(option)">
-					{{ getOptionLabel(option) }}
-				</a>
-			</li>
+			<template v-for="optionWrapper in filteredOptionsWithGroupNames" track-by="$index">
+				<li v-if="optionWrapper.isGroupTitle" class="dropdown-header">
+					{{ getOptionLabel(optionWrapper.option) }}
+				</li>
+				<li v-else :class="{ active: isOptionSelected(optionWrapper.option), highlight: optionWrapper.optionIndex === typeAheadPointer }" @mouseover="typeAheadPointer = optionWrapper.optionIndex">
+					<a @mousedown.prevent="select(optionWrapper.option)">
+						{{ getOptionLabel(optionWrapper.option) }}
+					</a>
+				</li>
+			</template>
 			<li transition="fade" v-if="!filteredOptions.length" class="divider"></li>
 			<li transition="fade" v-if="!filteredOptions.length" class="text-center">
 				<slot name="no-options">Sorry, no matching options.</slot>
@@ -225,6 +230,8 @@
 	import pointerScroll from '../mixins/pointerScroll'
 	import typeAheadPointer from '../mixins/typeAheadPointer'
 	import ajax from '../mixins/ajax'
+
+	const noGroupName = '__no_group__';
 
 	export default {
 		mixins: [pointerScroll, typeAheadPointer, ajax],
@@ -247,6 +254,9 @@
 			 * If you are using an array of objects, vue-select will look for
 			 * a `label` key (ex. [{label: 'This is Foo', value: 'foo'}]). A
 			 * custom label key can be set with the `label` prop.
+			 * You may display options in groups by putting a 'group' field on 
+			 * the objects contained in this array and setting the 'groups' flag
+			 * on vue-select to true (see below)
 			 * @type {Object}
 			 */
 			options: {
@@ -359,6 +369,16 @@
 			},
 
 			/**
+			 * Enable/disable displaying options in groups. If this flag is enabled, a 'group' field will be looked for on the 
+			 * options objects
+			 * @type {Boolean}
+			 */
+			groups: {
+				type: Boolean,
+				default: false
+			},
+
+			/**
 			 * When true, newly created tags will be added to
 			 * the options list.
 			 * @type {Boolean}
@@ -427,7 +447,7 @@
 			select(option) {
 				if (this.isOptionSelected(option)) {
 					this.deselect(option)
-				} else {
+				} else if (!this.filteredOptionsByGroup[option]) {
 					if (this.taggable && !this.optionExists(option)) {
 						option = this.createOption(option)
 
@@ -565,6 +585,10 @@
 				})
 
 				return exists
+			},
+
+			filterOptionsBySearch() {
+				return this.$options.filters.filterBy(this.options, this.search)
 			}
 		},
 
@@ -589,8 +613,46 @@
 			 */
 			searchPlaceholder() {
 				if (this.isValueEmpty && this.placeholder) {
-					return this.placeholder;
+					return this.placeholder
 				}
+			},
+
+			/**
+			 * The options filtered by search, grouped by their group name
+			 */
+			filteredOptionsByGroup() {
+				let options = this.filterOptionsBySearch()
+
+				let groups = options.reduce((groupObj, option) => {
+					let groupName = option.group || noGroupName
+					let groupArr = groupObj[groupName] = groupObj[groupName] || []
+					groupArr.push(option)
+					return groupObj
+				}, {})
+
+				return groups
+			},
+
+			/**
+			 * The order the option groups should appear in the list
+			 */
+			filteredOptionsGroupOrder() {
+				let options = this.filterOptionsBySearch()
+
+				let groupsEncountered = {}
+				let groupOrder = []
+				options.forEach(option => {
+					let groupName = option.group
+					if (groupName) {
+						let encountered = groupsEncountered[groupName]
+						if (!encountered) {
+							groupsEncountered[groupName] = true
+							groupOrder.push(groupName)
+						}
+					}
+				});
+
+				return groupOrder
 			},
 
 			/**
@@ -602,11 +664,44 @@
 			 * @return {array}
 			 */
 			filteredOptions() {
-				let options = this.$options.filters.filterBy(this.options, this.search)
+				return this.filteredOptionsWithGroupNames.reduce((arr, optWrapper) => {
+					if (!optWrapper.isGroupTitle) {
+						arr.push(optWrapper.option)
+					}
+					return arr
+				}, [])
+			},
+
+			/**
+			 * Ordered options, wrapped and put into groups with the 
+			 * name of the group as items seperating each group
+			 */
+			filteredOptionsWithGroupNames() {
+				let optionWrappers = []
+				let currentIndex = 0
+
 				if (this.taggable && this.search.length && !this.optionExists(this.search)) {
-					options.unshift(this.search)
+					optionWrappers.push({ option: this.search, optionIndex: currentIndex++ })
 				}
-				return options
+
+				if (this.groups) {
+
+					optionWrappers = this.filteredOptionsGroupOrder.reduce((arr, groupName) => {
+						let group = this.filteredOptionsByGroup[groupName]
+						if (group) {
+							arr.push({ option: groupName, isGroupTitle: true })
+							let groupOptions = group.map((opt) => ({ option: opt, optionIndex: currentIndex++ }))
+							return arr.concat(groupOptions)
+						} else {
+							return arr
+						}
+					}, [])
+				} else {
+					optionWrappers = optionWrappers.concat(this.filterOptionsBySearch().map(opt => ({ option: opt, optionIndex: currentIndex++ })))
+				}
+				let options = this.filterOptionsBySearch
+				
+				return optionWrappers
 			},
 
 			/**
