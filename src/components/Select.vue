@@ -686,7 +686,7 @@
 
 				if (this.groups) {
 
-					optionWrappers = this.filteredOptionsGroupOrder.reduce((arr, groupName) => {
+					optionWrappers = optionWrappers.concat(this.filteredOptionsGroupOrder.reduce((arr, groupName) => {
 						let group = this.filteredOptionsByGroup[groupName]
 						if (group) {
 							arr.push({ option: groupName, isGroupTitle: true })
@@ -695,7 +695,7 @@
 						} else {
 							return arr
 						}
-					}, [])
+					}, []))
 				} else {
 					optionWrappers = optionWrappers.concat(this.filterOptionsBySearch().map(opt => ({ option: opt, optionIndex: currentIndex++ })))
 				}

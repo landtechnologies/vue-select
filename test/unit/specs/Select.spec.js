@@ -1099,6 +1099,31 @@ describe('Select.vue', () => {
 			trigger(vm.$children[0].$els.search, 'keyup', (e) => e.keyCode = 13)
 			expect(vm.$children[0].value).toEqual(opt2)
 		})
+
+		it('can add current search as first option in search list when tagging enabled', function() {
+			var opt1 = {
+				label: 'one',
+				group: 'group1'
+			};
+			var opt2 = {
+				label: 'two1',
+				group: 'group2'
+			};
+			var opt3 = {
+				label: 'two2',
+				group: 'group3'
+			};
+			const vm = new Vue({
+				template: '<div><v-select v-ref:select :options="options" groups taggable></v-select></div>',
+				components: {vSelect},
+				data: {
+					options: [opt1, opt2, opt3]
+				}
+			}).$mount()
+
+			vm.$children[0].search = 'two'
+			expect(vm.$children[0].filteredOptions[0]).toEqual('two')
+		})
 	})
 
 
