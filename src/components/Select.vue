@@ -410,6 +410,15 @@
 				type: Boolean,
 				default: false
 			},
+
+			/**
+			 * When true, scrolls the result list up when the user hovers mouse over 
+			 * top half of list
+			 */
+			pointerScrollEnabled: {
+				type: Boolean,
+				default: true
+			}
 		},
 
 		data() {

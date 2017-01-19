@@ -1,7 +1,9 @@
 module.exports = {
   watch: {
     typeAheadPointer() {
-      this.maybeAdjustScroll()
+      if (this.pointerScrollEnabled) {
+        this.maybeAdjustScroll()
+      }
     }
   },
 
