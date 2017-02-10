@@ -6,3 +6,5 @@ test/unit/coverage
 .coveralls.yml
 *.sublime-project
 *.sublime-workspace
+.flowconfig
+
