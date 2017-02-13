@@ -202,7 +202,7 @@
 
       <i v-if="!noDrop" ref="openIndicator" role="presentation" class="open-indicator"></i>
 
-      <slot name="spinner">
+      <slot name="spinner" :loading="mutableLoading">
         <div class="spinner" v-show="mutableLoading">Loading...</div>
       </slot>
     </div>
@@ -502,6 +502,10 @@
        */
       multiple(val) {
         this.mutableValue = val ? [] : null
+      },
+
+      search(val) {
+        this.$emit('search-text-changed', val);
       }
     },
 
@@ -708,6 +712,10 @@
         if (this.pushTags) {
           this.mutableOptions.push(option)
         }
+      },
+
+      getSearchText() {
+        return this.search;
       }
     },
 
