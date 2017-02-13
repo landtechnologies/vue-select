@@ -202,8 +202,8 @@
 
       <i v-if="!noDrop" ref="openIndicator" role="presentation" class="open-indicator"></i>
 
-      <slot name="spinner" :loading="mutableLoading">
-        <div class="spinner" v-show="mutableLoading">Loading...</div>
+      <slot name="spinner" :loading="showLoading">
+        <div class="spinner" v-show="showLoading">Loading...</div>
       </slot>
     </div>
 
@@ -444,7 +444,8 @@
         open: false,
         mutableValue: null,
         mutableOptions: [],
-        mutableLoading: false
+        mutableLoading: false, 
+        showLoading: false
       }
     },
 

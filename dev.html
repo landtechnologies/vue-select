@@ -32,6 +32,20 @@
         <v-select placeholder="multiple" multiple :options="options"></v-select>
         <v-select placeholder="multiple, taggable" multiple taggable :options="options" no-drop></v-select>
         <v-select placeholder="multiple, taggable, push-tags" multiple push-tags taggable :options="[{label: 'Foo', value: 'foo'}]"></v-select>
+        <v-select placeholder="multiple, taggable, groups" multiple taggable groups :options="groupOptions"></v-select>
+        <v-select
+            :debounce="250"
+            :on-search="getOptions"
+            :options="ajaxOptions"
+            placeholder="Ajax options..."
+            label="full_name"
+        >
+            <template slot="spinner" scope="props">
+                <span v-show="props.loading">
+                    Loading...
+                </span>
+            </template>
+        </v-select>
     </div>
 </body>
 
