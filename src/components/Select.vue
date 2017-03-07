@@ -730,7 +730,7 @@
         return {
           open: this.dropdownOpen,
           searchable: this.searchable,
-          loading: this.mutableLoading
+          loading: this.showLoading
         }
       },
 
