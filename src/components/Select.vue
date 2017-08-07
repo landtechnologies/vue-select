@@ -717,6 +717,14 @@
 
       getSearchText() {
         return this.search;
+      },
+
+      focus() {
+        this.$refs.search.focus();
+      },
+
+      selectCurrentOption() {
+        this.typeAheadSelect();
       }
     },
 
